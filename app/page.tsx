@@ -298,7 +298,6 @@ export default function Home() {
             type="text"
             name="saltGA"
             value={inputFields.saltGA}
-            placeholder="Optional"
             onChange={handleInputChange}
           />
           <h2 className="mb-8 text-center">Address:</h2>
