@@ -20,6 +20,7 @@ export default function Home() {
     tokenIdGDA: "",
     tokenAddressGA: "",
     tokenIdGA: "",
+    saltGA: "",
   });
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,8 +55,11 @@ export default function Home() {
 
     const initializedProvider = new RpcProvider({
       nodeUrl:
-        "https://starknet-sepolia.infura.io/v3/" + process.env.NEXT_INFURA_KEY,
+        "https://starknet-sepolia.infura.io/v3/" +
+        process.env.NEXT_PUBLIC_INFURA_KEY,
     });
+    console.log(process.env.NEXT_PUBLIC_INFURA_KEY);
+
     setProvider(initializedProvider);
   }, []);
 
@@ -116,9 +120,11 @@ export default function Home() {
   const getAccount = async ({
     address,
     id,
+    salt,
   }: {
     address: string;
     id: string;
+    salt: string;
   }) => {
     const contract = new Contract(contractABI, CONTRACT_ADDRESS, provider);
 
@@ -128,10 +134,17 @@ export default function Home() {
           IMPLEMENTATION_HASH,
           address,
           id,
-          4
+          salt
         );
         const add = `0x0${acc.toString(16)}`;
         setTbaAccount(add);
+        setInputFields((prev) => {
+          const curr = prev;
+          curr.tokenAddressGA = "";
+          curr.tokenIdGA = "";
+          curr.saltGA = "";
+          return curr;
+        });
       }
     } catch (error) {
       console.log(error);
@@ -141,11 +154,11 @@ export default function Home() {
   const createAccount = async ({
     address,
     id,
-    salt = 15,
+    salt,
   }: {
     address: string;
     id: string;
-    salt?: number;
+    salt: string;
   }) => {
     const contract = new Contract(contractABI, CONTRACT_ADDRESS, account);
 
@@ -167,133 +180,144 @@ export default function Home() {
 
   return (
     <main className="p-8">
-      <div className="mb-8">
-        <h1 className="text-center mb-8">Contract address:</h1>
-        <p className="bg-slate-800 p-3 rounded-[20px] w-[90vw] lg:w-[40vw]">
-          {address}
-        </p>
-      </div>
-      <div className="flex w-full gap-4 mb-8">
-        {connection ? (
-          <button onClick={disconnectWallet}>disconnect</button>
-        ) : (
-          <button onClick={connectWallet}>Connect</button>
-        )}
-      </div>
-      <div className="mb-8">
-        <div className="flex flex-col gap-4 mb-8">
-          <label htmlFor="tokenAddress">Token Address:</label>
+      <section className="lg:w-1/2 mx-auto">
+        <div className="mb-8">
+          <h1 className="text-center mb-8">Contract address:</h1>
+          <p className="bg-slate-800 p-3 rounded-[20px] w-[90vw] lg:w-[40vw]">
+            {address}
+          </p>
+        </div>
+        <div className="flex w-full gap-4 mb-8">
+          {connection ? (
+            <button onClick={disconnectWallet}>disconnect</button>
+          ) : (
+            <button onClick={connectWallet}>Connect</button>
+          )}
+        </div>
+        <div className="mb-8">
+          <div className="flex flex-col gap-4 mb-8">
+            <label htmlFor="tokenAddress">Token Address:</label>
+            <input
+              type="text"
+              name="tokenAddress"
+              id="tokenAddress"
+              placeholder="0x0..."
+              value={inputFields.tokenAddress}
+              required
+              onChange={handleInputChange}
+            />
+            <label htmlFor="tokenId">Token ID:</label>
+            <input
+              type="text"
+              name="tokenId"
+              id="tokenId"
+              placeholder="000..."
+              value={inputFields.tokenId}
+              required
+              onChange={handleInputChange}
+            />
+            <label htmlFor="salt">Salt:</label>
+            <input
+              type="text"
+              name="salt"
+              value={inputFields.salt}
+              onChange={handleInputChange}
+            />
+          </div>
+          <button
+            onClick={() =>
+              createAccount({
+                address: inputFields.tokenAddress,
+                id: inputFields.tokenId,
+                salt: inputFields.salt,
+              })
+            }
+          >
+            create account
+          </button>
+        </div>
+        <div className="w-full my-8 flex flex-col gap-4">
+          <label htmlFor="tokenAddressGDA">Token Address:</label>
           <input
             type="text"
-            name="tokenAddress"
-            id="tokenAddress"
+            name="tokenAddressGDA"
+            id="tokenAddressGDA"
             placeholder="0x0..."
-            value={inputFields.tokenAddress}
+            value={inputFields.tokenAddressGDA}
             required
             onChange={handleInputChange}
           />
-          <label htmlFor="tokenId">Token ID:</label>
+          <label htmlFor="tokenIdGDA">Token ID:</label>
           <input
             type="text"
-            name="tokenId"
-            id="tokenId"
+            name="tokenIdGDA"
+            id="tokenIdGDA"
             placeholder="000..."
-            value={inputFields.tokenId}
+            value={inputFields.tokenIdGDA}
             required
             onChange={handleInputChange}
           />
-          <label htmlFor="salt">Salt:</label>
+          <h2 className="mt-8">Number of Deployed Account:</h2>
+          <p className="bg-slate-800 p-3 rounded-[20px] w-fit min-w-[6rem] text-center mb-8">
+            {numDeployed}
+          </p>
+          <button
+            onClick={() =>
+              getTotalNumberOfDeployedAccounts({
+                address: inputFields.tokenAddressGDA,
+                id: inputFields.tokenIdGDA,
+              })
+            }
+          >
+            get number of deployed accounts
+          </button>
+        </div>
+        <div className="w-full my-8 flex flex-col gap-4">
+          <label htmlFor="tokenAddressGA">Token Address:</label>
           <input
             type="text"
-            name="salt"
-            value={inputFields.salt}
+            name="tokenAddressGA"
+            id="tokenAddressGA"
+            placeholder="0x0..."
+            value={inputFields.tokenAddressGA}
+            required
+            onChange={handleInputChange}
+          />
+          <label htmlFor="tokenIdGA">Token ID:</label>
+          <input
+            type="text"
+            name="tokenIdGA"
+            id="tokenIdGA"
+            placeholder="000..."
+            value={inputFields.tokenIdGA}
+            required
+            onChange={handleInputChange}
+          />
+          <label htmlFor="saltGA">Salt:</label>
+          <input
+            type="text"
+            name="saltGA"
+            value={inputFields.saltGA}
             placeholder="Optional"
             onChange={handleInputChange}
           />
+          <h2 className="mb-8 text-center">Address:</h2>
+          <p className="bg-slate-800 p-3 rounded-[20px]  min-w-[6rem] text-center mb-8 w-[90vw] lg:w-[40vw]">
+            {tbaAddress}
+          </p>
+          <button
+            onClick={() =>
+              getAccount({
+                address: inputFields.tokenAddressGA,
+                id: inputFields.tokenIdGA,
+                salt: inputFields.saltGA,
+              })
+            }
+          >
+            get account
+          </button>
         </div>
-        <button
-          onClick={() =>
-            createAccount({
-              address: inputFields.tokenAddress,
-              id: inputFields.tokenId,
-            })
-          }
-        >
-          create account
-        </button>
-      </div>
-      <div className="w-full my-8 flex flex-col gap-4">
-        <label htmlFor="tokenAddressGDA">Token Address:</label>
-        <input
-          type="text"
-          name="tokenAddressGDA"
-          id="tokenAddressGDA"
-          placeholder="0x0..."
-          value={inputFields.tokenAddressGDA}
-          required
-          onChange={handleInputChange}
-        />
-        <label htmlFor="tokenIdGDA">Token ID:</label>
-        <input
-          type="text"
-          name="tokenIdGDA"
-          id="tokenIdGDA"
-          placeholder="000..."
-          value={inputFields.tokenIdGDA}
-          required
-          onChange={handleInputChange}
-        />
-        <h2 className="mt-8">Number of Deployed Account:</h2>
-        <p className="bg-slate-800 p-3 rounded-[20px] w-fit min-w-[6rem] text-center mb-8">
-          {numDeployed}
-        </p>
-        <button
-          onClick={() =>
-            getTotalNumberOfDeployedAccounts({
-              address: inputFields.tokenAddressGDA,
-              id: inputFields.tokenIdGDA,
-            })
-          }
-        >
-          get number of deployed accounts
-        </button>
-      </div>
-      <div className="w-full my-8 flex flex-col gap-4">
-        <label htmlFor="tokenAddressGA">Token Address:</label>
-        <input
-          type="text"
-          name="tokenAddressGA"
-          id="tokenAddressGA"
-          placeholder="0x0..."
-          value={inputFields.tokenAddressGA}
-          required
-          onChange={handleInputChange}
-        />
-        <label htmlFor="tokenIdGA">Token ID:</label>
-        <input
-          type="text"
-          name="tokenIdGA"
-          id="tokenIdGA"
-          placeholder="000..."
-          value={inputFields.tokenIdGA}
-          required
-          onChange={handleInputChange}
-        />
-        <h2 className="mb-8 text-center">Address:</h2>
-        <p className="bg-slate-800 p-3 rounded-[20px]  min-w-[6rem] text-center mb-8 w-[90vw] lg:w-[40vw]">
-          {tbaAddress}
-        </p>
-        <button
-          onClick={() =>
-            getAccount({
-              address: inputFields.tokenAddressGA,
-              id: inputFields.tokenIdGA,
-            })
-          }
-        >
-          get account
-        </button>
-      </div>
+      </section>
     </main>
   );
 }
